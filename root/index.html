@@ -3,17 +3,29 @@
 	<head>
 		<title>Backfire</title>
 		<link rel="stylesheet" href="css/main.css" type="text/css" />
-		<script src="socket.io/socket.io.js"></script>		
+		<script src="socket.io/socket.io.js"></script>
+		<script src="FileDialog.js"></script>
 		<script src="client.js"></script>
 
 	</head>
 	<body>
 		<div id="playinfo">
-			<input type="text" id="fname" placeholder="input file"><br>
+			<div class="settingitem">
+				<div class="itemlabel">Directory:</div><input type="text" id="dirpath" placeholder="input file"><button id="openbtn">Browse</button>
+			</div>
+			<div class="settingitem">
+				<div class="itemlabel">File:</div><input type="text" id="filename" placeholder="input name" value="image%06d.jpg">
+			</div>
+			<!--<div class="settingitem">
+				<div class="itemlabel">Sound:</div><input type="text" id="soundname" placeholder="input name" value="music.mp3">
+			</div>-->
 			<button id="playbtn">Play</button>
 		</div>
-		<div id=moviearea>
+		<div id="moviearea">
+		</div>
+		<div id="filelistarea" style="display:none">
+			<div id="filelist"></div>
 		</div>
 	</body>
-</html>	
+</html>
 	
