@@ -110,6 +110,10 @@ var ffmpegInsts = {},
 		} else if (filePath === '/FileDialog.js') {
 			filePath = "/../app/lib/FileDialog.js";
 		} else if (filePath.slice(0, 2) === '/?') {
+			if (!clSocket[sessionId]) {
+				response.end('Bad request');
+				return;
+			}
 			console.log(filePath);
 			filePath = filePath.slice(2);
 			arglist = filePath.split('&');
@@ -122,13 +126,17 @@ var ffmpegInsts = {},
 			
 			request.on("close", function () {
 				if (ffmpegInsts[sessionId]) {
+					console.log('kill FFMEPG:' + sessionId)
 					ffmpegInsts[sessionId].kill();
+					ffmpegInsts[sessionId] = null;
 				}
 			});
 
 			request.on("end", function () {
 				if (ffmpegInsts[sessionId]) {
+					console.log('kill FFMEPG:' + sessionId)
 					ffmpegInsts[sessionId].kill();
+					ffmpegInsts[sessionId] = null;
 				}
 			});
 
@@ -140,6 +148,7 @@ var ffmpegInsts = {},
 			}
 
 			if (ffmpegInsts[sessionId]) {
+				console.log('kill FFMEPG:' + sessionId)
 				ffmpegInsts[sessionId].kill();
 			}
 
@@ -161,6 +170,7 @@ var ffmpegInsts = {},
 			ffmpegInsts[sessionId].on('error', function (err) {
 				console.log(err);
 				clSocket[sessionId].emit('showError', "Faild to run FFMPEG.");
+				ffmpegInsts[sessionId] = null;
 			});
 			return;
 		}
