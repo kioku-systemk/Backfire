@@ -46,6 +46,10 @@ body {
 	margin: 5px;
 }
 
+#errormsg {
+	color: #F00;
+	margin: 5px;
+}
 #filelistarea{
 	background-color: #222;
 	position: absolute;

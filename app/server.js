@@ -5,10 +5,19 @@ var port = 8080,
 	serverDir = './root',
 	fs = require('fs'),
 	http = require('http'),
+	os = require('os'),
 	spawn = require('child_process').spawn,
 	socketio = require('socket.io'),
 	filedialog = require('./lib/FileDialog'),
-	ffmpegInst = null;
+	FFMPEG_EXE;
+
+if (os.platform() === 'darwin') {
+	FFMPEG_EXE = './ffmpeg_mac';
+} else if (os.platform() === 'win32') {
+	FFMPEG_EXE = 'ffmpeg.exe';
+} else {
+	FFMPEG_EXE = 'ffmpeg';
+}
 
 if (process.argv.length > 2) {
 	port = parseInt(process.argv[2], 10);
@@ -17,7 +26,7 @@ if (process.argv.length > 2) {
 var ffmpegProc = function () {
 	'use strict';
 	/* movie */
-	var ffmpeg = spawn("ffmpeg",   [
+	var ffmpeg = spawn(FFMPEG_EXE,   [
 		'-i', 'marimo_out.mp4',
 		'-f', 'webm', '-vcodec', 'libvpx',
 		//'-f', 'mp4', '-vcodec', 'libx264',// fail!! invalid arument?
@@ -72,6 +81,11 @@ var ffmpegProc = function () {
 		console.log('ffmpeg stderr: ' + data);
 	});
 
+	ffmpeg.on('error', function (code) {
+		if (code) {
+			console.log('ffmpeg process error ' + code);
+		}
+	});
 	ffmpeg.on('exit', function (code) {
 		if (code !== 0) {
 			console.log('ffmpeg process exited with code ' + code);
@@ -79,74 +93,89 @@ var ffmpegProc = function () {
 	});
 };
 
-var server = http.createServer(function　(request, response) {
-	request.on("close", function() {
-		if (ffmpegInst) {
-			ffmpegInst.kill();
-		}
-	});
+var ffmpegInsts = {},
+	clSocket = {},
+	server = http.createServer(function　(request, response) {
+		'use strict';
+		var filePath = request.url,
+			rs,
+			arglist,
+			inputfile,
+			typefile,
+			sessionId,
+			codec;
+		
+		if (filePath === '/') {
+			filePath = "/index.html";
+		} else if (filePath === '/FileDialog.js') {
+			filePath = "/../app/lib/FileDialog.js";
+		} else if (filePath.slice(0, 2) === '/?') {
+			console.log(filePath);
+			filePath = filePath.slice(2);
+			arglist = filePath.split('&');
+			inputfile = arglist[0];
+			typefile  = arglist[1];
+			sessionId = arglist[2];
+			console.log('MOV', inputfile, typefile, sessionId);
 
-	request.on("end", function() {
-		if (ffmpegInst) {
-			ffmpegInst.kill();
+			clSocket[sessionId].emit('showError', '');
+			
+			request.on("close", function () {
+				if (ffmpegInsts[sessionId]) {
+					ffmpegInsts[sessionId].kill();
+				}
+			});
+
+			request.on("end", function () {
+				if (ffmpegInsts[sessionId]) {
+					ffmpegInsts[sessionId].kill();
+				}
+			});
+
+
+			if (typefile === 'webm') {
+				codec = 'libvpx';
+			} else if (typefile === 'mp4') {
+				codec = 'libx264';
+			}
+
+			if (ffmpegInsts[sessionId]) {
+				ffmpegInsts[sessionId].kill();
+			}
+
+			ffmpegInsts[sessionId] = spawn("ffmpeg",   [
+				'-i', inputfile,
+				'-f', typefile, '-vcodec', codec,
+				'-r', '30',	'-skip_threshold', '25',
+				'-speed', '1',
+				'-quality', 'realtime',
+				'-b', '900000', '-maxrate', '900000', '-minrate', '900000',
+				'-bufsize', '900000', '-rc_init_occupancy', '900000',
+				'-rc_lookahead', '0', '-qmin', '20', '-qmax', '50',
+				'-y', 'pipe:1'
+			]);
+			ffmpegInsts[sessionId].stdout.pipe(response);
+			ffmpegInsts[sessionId].stderr.on('data', function (data) {
+				console.log('ffmpeg : ' + data);
+			});
+			ffmpegInsts[sessionId].on('error', function (err) {
+				console.log(err);
+				clSocket[sessionId].emit('showError', "Faild to run FFMPEG.");
+			});
+			return;
+		}
+		filePath = serverDir + filePath;
+
+		try {
+			rs = fs.createReadStream(filePath);
+			rs.on('error', function (err) {
+				console.log(err);
+			});
+			rs.pipe(response);
+		} catch (er) {
+			response.end("Bad request." + er);
 		}
 	});
-	'use strict';
-	var filePath = request.url,
-		rs,
-		arglist,
-		inputfile,
-		typefile,
-		codec;
-	if (filePath === '/') {
-		filePath = "/index.html";
-	} else if (filePath === '/FileDialog.js') {
-		filePath = "/../app/lib/FileDialog.js";
-	} else if (filePath.slice(0,2) === '/?') {
-		filePath = filePath.slice(2);
-		arglist = filePath.split('&');
-		inputfile = arglist[0];
-		typefile  = arglist[1];
-		console.log('MOV',inputfile, typefile);
-		
-		if (typefile === 'webm') {
-			codec = 'libvpx';
-		} else if (typefile === 'mp4') {
-			codec = 'libx264';
-		}
-		
-		if (ffmpegInst) {
-			ffmpegInst.kill();
-		}
-		ffmpegInst = spawn("ffmpeg",   [
-			'-i', inputfile,
-			'-f', typefile, '-vcodec', codec,
-			'-r', '30',	'-skip_threshold', '25',
-			'-speed', '1',
-			'-quality', 'realtime',
-			'-b', '900000', '-maxrate', '900000', '-minrate', '900000',
-			'-bufsize', '900000', '-rc_init_occupancy', '900000',
-			'-rc_lookahead', '0', '-qmin', '20', '-qmax', '50',
-			'-y', 'pipe:1'
-		]);
-		ffmpegInst.stdout.pipe(response);
-		ffmpegInst.stderr.on('data', function (data) {
-			console.log('ffmpeg : ' + data);
-		});
-		return;
-	}
-	filePath = serverDir + filePath;
-	
-	try {
-		rs = fs.createReadStream(filePath);
-		rs.on('error', function (err) {
-			console.log(err);
-		});
-		rs.pipe(response);
-	} catch (e) {
-		response.end("Bad request." + e);
-	}
-});
 server.listen(port, function () {
 	'use strict';
 	console.log((new Date()) + ' Server is listening on port ' + port);
@@ -177,9 +206,13 @@ function enableProductionSetting(io) {
 io.sockets.on('connection', function (socket) {
 	'use strict';
 	console.log('connected:' + socket.id);
+	ffmpegInsts[socket.id] = null;
+	clSocket[socket.id] = socket;
+	
 	filedialog.SocketEvent(socket, 'opendlg');
 	socket.on('playfile', function (sdata) {
 		console.log('playfile Event:' + sdata);
 		var data = JSON.parser(sdata);
 	});
 });
+

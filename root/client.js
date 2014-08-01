@@ -6,7 +6,8 @@ window.onload = function () {
 	'use strict';
 	var socket = io.connect(),
 		playbtn = document.getElementById('playbtn'),
-		openbtn = document.getElementById('openbtn');
+		openbtn = document.getElementById('openbtn'),
+		errormsg = document.getElementById('errormsg');
 	
 	fd = new FileDialog('opendlg', true, true);
 	fd.registerSocketEvent(socket);
@@ -16,7 +17,10 @@ window.onload = function () {
 		socket.on('event', function (data) {
 			console.log(data);
 		});
-		//filedialog.registerSocketEvent(socket);
+		socket.on('showError', function (data) {
+			//console.log('Err:', data)
+			errormsg.innerHTML = data;
+		});
 	});
 
 	function showFileList(show) {
@@ -36,8 +40,8 @@ window.onload = function () {
 		showFileList(false);
 		var dirpath  = document.getElementById('dirpath').value,
 			filename = document.getElementById('filename').value,
-			tarfile = '?' + dirpath + '/' + filename + '&webm';
-		console.log(tarfile);
+			tarfile = '?' + dirpath + '/' + filename + '&webm&' + socket.io.engine.id;
+		//console.log(tarfile);
 		
 		var moviearea = document.getElementById('moviearea'),
 			mov = document.getElementById('mov');

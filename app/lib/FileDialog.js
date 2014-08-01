@@ -22,10 +22,10 @@ if (typeof window === 'undefined') { // Node.js
 							try {
 								if (fs.statSync(name).isDirectory()) {
 									//getFiles(name,list);
-									console.log(name);
+									//console.log(name);
 									list.push({"name": files[i], "type": "dir", "path": name});
 								} else if (files[i].substring(0, 1) !== '.') {
-									console.log(name);
+									//console.log(name);
 									list.push({"name": files[i], "type": "file", "path": name});
 								}
 							} catch (e) {
@@ -36,16 +36,18 @@ if (typeof window === 'undefined') { // Node.js
 				}
 				function updateFileList(path) {
 					var list = [];
-					getFiles(path, list);
-					if (list.length !== 0) {
+					try {
+						getFiles(path, list);
 						socket.emit(name + ':FileDialogUpdateList', JSON.stringify(list));
+					} catch (e) {
+						console.log("Failed getfile");
 					}
 				}
 
 				socket.on(name + ':FileDialogReqFileList', function (data) {
 					console.log('PATH=' + data);
 					updateFileList(data);
-				}); // fb:reqFileList
+				});
 			}
 		};
 	module.exports = Filedialog;
@@ -57,6 +59,7 @@ if (typeof window === 'undefined') { // Node.js
 		this.name = name;
 		this.ignoreDotFile = ignoreDotFile;
 		this.dirOnly = dirOnly;
+		this.tarDir = "/";
 	};
 	
 	FileDialog.prototype.registerSocketEvent = function (socket) {
@@ -66,7 +69,6 @@ if (typeof window === 'undefined') { // Node.js
 		console.log('FileDialog:' + eventname);
 		function eventFunc(thisptr) {
 			return function (data) {
-				//console.log(data);
 				thisptr.updateDirlist(data);
 			};
 		}
@@ -75,7 +77,7 @@ if (typeof window === 'undefined') { // Node.js
 
 	FileDialog.prototype.FileList = function (path) {
 		'use strict';
-		//this.dispPath(path);
+		this.tarDir = path;
 		console.log("Filelist:" + path);
 		this.socket.emit(this.name + ":FileDialogReqFileList", path);
 	};
@@ -102,6 +104,7 @@ if (typeof window === 'undefined') { // Node.js
 			if (uppath === "//") {
 				uppath = "/";
 			}
+			
 			return uppath;
 		}
 		
@@ -118,7 +121,6 @@ if (typeof window === 'undefined') { // Node.js
 			filelabel.setAttribute('class', 'filelabel');
 			filelabel.innerHTML = '..';
 			newbtn.appendChild(filelabel);
-			console.log("UPATH=" + upath);
 			newbtn.setAttribute('onclick', 'openfileDialog("' + upath + '")');
 			return newbtn;
 		}
@@ -139,12 +141,9 @@ if (typeof window === 'undefined') { // Node.js
 			return newbtn;
 		}
 	
-		console.log("updateDirList");
-
 		// up dir
-		var tarPath = '',
-			ls = document.getElementById("filelist"),
-			unode = makeUpNode(tarPath),
+		var ls = document.getElementById("filelist"),
+			unode = makeUpNode(this.tarDir),
 			list = JSON.parse(jsonlist),
 			newbtn,
 			skip,
@@ -156,7 +155,6 @@ if (typeof window === 'undefined') { // Node.js
 		for (i in list) {
 			if (list.hasOwnProperty(i)) {
 				skip = false;
-				//console.log(list[i]);
 				if (list[i].type !== "file" && list[i].type !== "dir") {
 					console.log("Unknown file type -> " + list[i].type);
 					skip = true;
