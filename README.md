@@ -15,6 +15,7 @@ HTML5 streaming player using FFMPEG
 
 2. ZIP解凍しインストールスクリプトを実行
 Windowsの場合:
+
     install.batを実行
 
 MacOSXの場合は
@@ -26,6 +27,7 @@ MacOSXの場合は
 ## 起動方法:
 
 Windowsの場合:
+
     run.batを実行
 
 MacOSXの場合は
@@ -35,6 +37,7 @@ MacOSXの場合は
 を実行
 
 ブラウザで [http://localhost:8080/] にアクセスする。
+
 他のコンピュータからアクセスする場合は
 [http://コンピュータのIPアドレス:8080/]
 にアクセスする。
