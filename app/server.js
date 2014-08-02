@@ -110,35 +110,37 @@ var ffmpegInsts = {},
 		} else if (filePath === '/FileDialog.js') {
 			filePath = "/../app/lib/FileDialog.js";
 		} else if (filePath.slice(0, 2) === '/?') {
-			if (!clSocket[sessionId]) {
-				response.end('Bad request');
-				return;
-			}
 			console.log(filePath);
 			filePath = filePath.slice(2);
 			arglist = filePath.split('&');
 			inputfile = arglist[0];
 			typefile  = arglist[1];
 			sessionId = arglist[2];
+			
+			console.log('socket', clSocket[sessionId]);
+			if (!clSocket[sessionId]) {
+				response.end('Bad request');
+				return;
+			}
 			console.log('MOV', inputfile, typefile, sessionId);
 
 			clSocket[sessionId].emit('showError', '');
 			
-			request.on("close", function () {
+			request.on("close", function (sessionId) { return function () {
 				if (ffmpegInsts[sessionId]) {
 					console.log('kill FFMEPG:' + sessionId)
 					ffmpegInsts[sessionId].kill();
 					ffmpegInsts[sessionId] = null;
 				}
-			});
+			}}(sessionId));
 
-			request.on("end", function () {
+			request.on("end", function (sessionId) { return function () {
 				if (ffmpegInsts[sessionId]) {
 					console.log('kill FFMEPG:' + sessionId)
 					ffmpegInsts[sessionId].kill();
 					ffmpegInsts[sessionId] = null;
 				}
-			});
+			}}(sessionId));
 
 
 			if (typefile === 'webm') {
@@ -167,11 +169,11 @@ var ffmpegInsts = {},
 			ffmpegInsts[sessionId].stderr.on('data', function (data) {
 				console.log('ffmpeg : ' + data);
 			});
-			ffmpegInsts[sessionId].on('error', function (err) {
+			ffmpegInsts[sessionId].on('error', function (sessionId) { return function (err) {
 				console.log(err);
 				clSocket[sessionId].emit('showError', "Faild to run FFMPEG.");
 				ffmpegInsts[sessionId] = null;
-			});
+			}}(sessionId));
 			return;
 		}
 		filePath = serverDir + filePath;
