@@ -121,7 +121,7 @@ if (typeof window === 'undefined') { // Node.js
 			filelabel.setAttribute('class', 'filelabel');
 			filelabel.innerHTML = '..';
 			newbtn.appendChild(filelabel);
-			newbtn.setAttribute('onclick', 'openfileDialog("' + upath + '")');
+			newbtn.setAttribute('onclick', 'clickDir("' + upath + '")');
 			return newbtn;
 		}
 
