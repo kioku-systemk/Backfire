@@ -19,7 +19,7 @@ body {
 	display: flex;
 	display: -webkit-flex;
 	flex-direction: row;
-	width: 500px;
+	width: 800px;
 }
 .itemlabel {
 	width: 80px;
@@ -30,7 +30,7 @@ body {
 }
 
 #filename {
-	width: 320px;
+	width: 220px;
 }
 
 #soundname {
@@ -40,6 +40,7 @@ body {
 
 #playbtn {
 	width: 100px;
+	height:30px;
 }
 
 #playinfo {
@@ -50,10 +51,16 @@ body {
 	color: #F00;
 	margin: 5px;
 }
+#hintmsg {
+	color: #CCC;
+	font-size: 0.5em;
+	margin: 5px;
+}
+
 #filelistarea{
 	background-color: #222;
 	position: absolute;
-	top: 26px;
+	top: 48px;
 	left: 0px;
 	right: 0px;
 	bottom: 0px;

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 	<head>
+		<meta charset="UTF-8">
 		<title>Backfire</title>
 		<link rel="stylesheet" href="css/main.css" type="text/css" />
 		<script src="socket.io/socket.io.js"></script>
@@ -15,6 +16,7 @@
 			</div>
 			<div class="settingitem">
 				<div class="itemlabel">File:</div><input type="text" id="filename" placeholder="input name" value="image%06d.jpg">
+				<div id="hintmsg">動画ファイル、もしくは連番ファイルでimage000001.jpgから始まる場合は "image%06d.jpg"と設定する</div>
 			</div>
 			<!--<div class="settingitem">
 				<div class="itemlabel">Sound:</div><input type="text" id="soundname" placeholder="input name" value="music.mp3">

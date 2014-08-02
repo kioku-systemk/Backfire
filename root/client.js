@@ -9,7 +9,7 @@ window.onload = function () {
 		openbtn = document.getElementById('openbtn'),
 		errormsg = document.getElementById('errormsg');
 	
-	fd = new FileDialog('opendlg', true, true);
+	fd = new FileDialog('opendlg', true, false);
 	fd.registerSocketEvent(socket);
 	
 	socket.on('connect', function () {
@@ -62,7 +62,12 @@ window.onload = function () {
 	};
 };
 
-function openfileDialog(path) {
+function clickDir(path) {
 	document.getElementById('dirpath').value = path;
 	fd.FileList(path);
+}
+
+function clickFile(path) {
+	var fl = path.split("/");
+	document.getElementById('filename').value = fl[fl.length - 1];
 }
