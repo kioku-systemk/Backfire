@@ -1,0 +1,3 @@
+FFMPEGのライセンスは開発元に従います。
+
+SEE > http://www.ffmpeg.org/legal.html
