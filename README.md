@@ -14,11 +14,12 @@ HTML5 streaming player using FFMPEG
 [https://github.com/kioku-systemk/Backfire/archive/master.zip]
 
 2. ZIP解凍しインストールスクリプトを実行
+
 Windowsの場合:
 
     install.batを実行
 
-MacOSXの場合は
+MacOSXの場合:
 
     $sh install.sh
 
@@ -30,7 +31,7 @@ Windowsの場合:
 
     run.batを実行
 
-MacOSXの場合は
+MacOSXの場合:
 
     $sh run.sh
 
